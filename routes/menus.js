@@ -1,37 +1,63 @@
-import express from 'express';
+import { prisma } from "../prismaClient.js";
+import express from "express";
 const router = express.Router();
 
-router.get('/stats', (req, res, next) => {
-    res.status(200).json({
-        stats: {
-            totalMenus: 3,
-            totalOrders: 10,
-            totalSales: 30000
-        }
-    });
+router.get("/stats", async (req, res, next) => {
+     const totalMenus = await prisma.Menu.aggregate({
+          _count: {
+               id: true,
+          },
+     });
+
+     const totalOrders = await prisma.OrderHistory.aggregate({
+          _count: {
+               id: true,
+          },
+     });
+
+     // 메뉴랑 오더랑 조인
+
+     const orderedMenu = await prisma.Menu.findMany({
+          include: {
+               orders: true,
+          },
+     });
+
+     const totalSales = orderedMenu.reduce((total, menu) => {
+          const orderCount = menu.orders.length;
+          return total + orderCount * menu.price;
+     }, 0);
+
+     res.status(200).json({
+          stats: {
+               totalMenus: totalMenus._count.id,
+               totalOrders: totalOrders._count.id,
+               totalSales: totalSales,
+          },
+     });
 });
 
-router.get('/', (req, res, next) => {
-    res.status(200).json({
-        menus: [
-            {
-                id: 1,
-                name: 'Latte',
-                type: 'Coffee',
-                temperature: 'hot',
-                price: 4500,
-                totalOrders: 5
-            },
-            {
-                id: 2,
-                name: 'Iced Tea',
-                type: 'Tea',
-                temperature: 'ice',
-                price: 3000,
-                totalOrders: 10
-            }
-        ]
-    });
+router.get("/", async (req, res, next) => {
+     const orderedMenu = await prisma.Menu.findMany({
+          include: {
+               orders: true,
+          },
+     });
+
+     const menus = orderedMenu.map((menu) => ({
+          id: menu.id,
+          name: menu.name,
+          type: menu.type,
+          temperature: menu.temperature,
+          price: menu.price,
+          totalOrders: menu.orders.length,
+     }));
+
+     console.log(menus);
+
+     res.status(200).json({
+          menus,
+     });
 });
 
 export default router;
