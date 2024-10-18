@@ -53,8 +53,6 @@ router.get("/", async (req, res, next) => {
           totalOrders: menu.orders.length,
      }));
 
-     console.log(menus);
-
      res.status(200).json({
           menus,
      });
