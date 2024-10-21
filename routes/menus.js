@@ -58,24 +58,9 @@ router.get("/", async (req, res, next) => {
      });
 });
 
-// router.get("/", async (req, res, next) => {
-//      const menus = await prisma.menu.findMany({
-//           where: { id: true },
-//      });
-//      res.status(200).json({
-//           menus,
-//      });
-// });
-
-//????
+// 생성 및 수정 시 조회
 router.get("/:menuId", async (req, res, next) => {
      const id = req.params.menuId;
-
-     console.log(id);
-
-     if (id === undefined || id === "") {
-          return res.status(200).json({ message: "메뉴 생성 페이지입니다." });
-     }
 
      if (isNaN(+id)) {
           return res.status(400).json({
@@ -105,13 +90,11 @@ router.post("/", async (req, res, next) => {
 
      res.status(201).json({
           message: "메뉴 생성되었습니다.",
-          menu: {
-               createMenu,
-          },
+          menu: createMenu,
      });
 });
 
-// 메뉴 수정 하기
+// 메뉴 수정
 router.put("/:menuId", async (req, res, next) => {
      const id = req.params.menuId;
      const { name, type, temperature, price } = req.body;
@@ -131,7 +114,7 @@ router.put("/:menuId", async (req, res, next) => {
      });
 });
 
-//메뉴 삭제 하기
+//메뉴 삭제
 router.delete("/:menuId", async (req, res, next) => {
      const id = req.params.menuId;
      const deleteMenu = await prisma.Menu.delete({
